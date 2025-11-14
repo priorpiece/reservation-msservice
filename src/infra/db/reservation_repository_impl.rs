@@ -34,7 +34,7 @@ impl ReservationRepository for ReservationRepositoryImpl {
                 reserved_at: row.reserved_at,
                 ad_cnt: row.ad_cnt.unwrap_or(0),
                 cd_cnt: row.cd_cnt.unwrap_or(0), 
-                status: row.status.and_then(|s| ReservationStatus::from_str(&s).ok()),
+                status: row.status.as_deref().and_then(|s| ReservationStatus::from_str(s).ok()),
                 use_at: row.use_at != 0,
             })
         } else {

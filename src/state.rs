@@ -5,7 +5,6 @@ use crate::{adapter::reservation_adapter::ReservationAdapter,
     application::{port::{r#in::reservation_usecase::ReservationUseCase, out::{reservation_load_port::ReservationLoadPort, reservation_save_port::ReservationSavePort}}, 
     reservation_service::ReservationService}, 
     db_connection::establish_connection, 
-    grpc::grpc_service::ReservationGrpcService,  
     grpc_client::GrpcClients, 
     infra::db::reservation_repository::ReservationRepository,
     infra::db::reservation_repository_impl::ReservationRepositoryImpl, 
@@ -18,7 +17,6 @@ pub struct AppState {
     pub reservation_repository: Arc<dyn ReservationRepository + Send + Sync>,  
     pub reservation_service: Arc<dyn ReservationUseCase + Send + Sync>,
     pub reservation_controller: Arc<ReservationController>,
-    pub grpc_server: Arc<ReservationGrpcService>,
     pub grpc_clients: Arc<Mutex<GrpcClients>>,
 }
 
@@ -56,16 +54,12 @@ impl AppState {
             Arc::clone(&reservation_service),
             Arc::clone(&grpc_clients)
     ));
-         // gRPC 서버 인스턴스 생성
-         let grpc_server = Arc::new(ReservationGrpcService::new(Arc::clone(&reservation_service)));
-
          Self {
              settings: Arc::new(settings),
              db_pool: Arc::clone(&db_pool),
              reservation_repository,
              reservation_service,
              reservation_controller,
-             grpc_server, // gRPC 서버 추가
              grpc_clients
          }
     }

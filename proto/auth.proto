@@ -13,4 +13,5 @@ message ValidateTokenRequest {
 message ValidateTokenResponse {
   bool valid = 1;
   string user_id = 2;
+  bool is_admin =3;
 }

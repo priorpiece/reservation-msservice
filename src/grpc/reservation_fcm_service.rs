@@ -2,43 +2,48 @@ use tonic::{Request, Response, Status};
 use std::sync::Arc;
 use async_trait::async_trait;
 
-// ✅ 기존 서비스 포트 import
-use crate::{application::port::out::reservation_load_port::ReservationLoadPort, reservationfcm_proto::{reservation_service_server::ReservationService, ContentScheduleRequest, UserList}};
+// 기존 서비스 포트 import
+use crate::{application::port::r#in::reservation_usecase::ReservationUseCase, reservationfcm_proto::{ContentScheduleRequest, UserList, reservation_service_server::ReservationService}};
 
 pub struct ReservationFcmGrpcService {
-    reservation_port: Arc<dyn ReservationLoadPort + Send + Sync>,  
+     reservation_service: Arc<dyn ReservationUseCase + Send + Sync>,  
 }
-
-impl ReservationFcmGrpcService {
-    pub fn new(reservation_port: Arc<dyn ReservationLoadPort + Send + Sync>) -> Self {
-        ReservationFcmGrpcService { reservation_port }
-    }
-}
-
 #[async_trait]
 impl ReservationService for ReservationFcmGrpcService {
     async fn get_users_by_content_schedule_id(
         &self,
         request: Request<ContentScheduleRequest>,
     ) -> Result<Response<UserList>, Status> {
+        // 1) 요청 파싱 (proto가 string이면 trim + parse)
         let req = request.into_inner();
-        println!("Received request for ContentScheduleId: {}", req.content_schedule_id);
-        //타입 변환
-        let content_schedule_id: u64 = match req.content_schedule_id.parse() {
-            Ok(id) => id,
-            Err(_) => return Err(Status::invalid_argument("Invalid content_schedule_id format")),
-        };
-        
-        let reservations = match self.reservation_port.load_reservations_by_content_schedule(content_schedule_id).await {
-            Ok(reservations) => reservations,
-            Err(err) => return Err(Status::internal(format!("Failed to load reservations: {}", err))),
-        };
+        let schedule_id = req
+            .content_schedule_id
+            .trim()
+            .parse::<u64>()
+            .map_err(|_| Status::invalid_argument("Invalid content_schedule_id"))?;
 
-        // user_id 추출
-        let user_ids: Vec<String> = reservations.into_iter().map(|r| r.user_id.to_string()).collect();
+        // 2) 서비스 호출
+        let result = self
+            .reservation_service
+            .find_users_by_schedule_id(schedule_id)
+            .await;
 
-        let response = UserList { user_ids };
+        // 3) 결과 매핑 (Vec<i64>/u64 → Vec<String> 방어적으로 변환)
+        match result {
+            Ok(user_ids) => {
+                let user_ids: Vec<String> = user_ids
+                    .into_iter()
+                    .map(|id| id.to_string())
+                    .collect();
+                Ok(Response::new(UserList { user_ids }))
+            }
+            Err(e) => Err(Status::internal(format!("Failed to fetch users: {}", e))),
+        }
+    }
+}
 
-        Ok(Response::new(response))
+impl ReservationFcmGrpcService {
+     pub fn new(reservation_service: Arc<dyn ReservationUseCase + Send + Sync>) -> Self {
+        ReservationFcmGrpcService { reservation_service }
     }
 }

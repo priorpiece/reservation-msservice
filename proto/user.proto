@@ -16,6 +16,7 @@ message UserRequest {
   int32 cdCnt = 3;
   bool preRev = 4;
   string regDt = 5;
+  bool manuYn = 6;
 }
 
 message UserResponse {
@@ -24,4 +25,5 @@ message UserResponse {
   int32 cdCnt = 3;
   bool preRev = 4;
   string regDt = 5;
+  bool manuYn = 6;
 }

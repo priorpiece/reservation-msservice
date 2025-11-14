@@ -164,4 +164,12 @@ impl ReservationUseCase for ReservationService {
     // async fn delete_reservation(&self, reservation_id: i32) -> Result<(), String> {
     //     self.adapter.delete_reservation(reservation_id).await
     // }
+     async fn find_users_by_schedule_id(&self,content_schedule_id: u64,) -> Result<Vec<String>, String> {
+        let reservations = self
+            .load_port
+            .load_reservations_by_content_schedule(content_schedule_id)
+            .await?;
+
+        Ok(reservations.into_iter().map(|r| r.user_id.to_string()).collect())
+    }
 }
