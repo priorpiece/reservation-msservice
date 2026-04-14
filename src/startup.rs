@@ -18,9 +18,9 @@ async fn run_eureka_client(state: Arc<AppState>) {
      let instance_info = EurekaInfo {
         instance: EurekaDetails {
             instance_id: settings.instance_id.clone(),
-            host_name: "127.0.0.1".to_string(),
+            host_name: settings.server_host.clone(),
             app: settings.app_name.clone(),
-            ip_addr: "127.0.0.1".to_string(),
+            ip_addr: settings.server_host.clone(),
             vip_address: settings.app_name.clone(),
             status: "UP".to_string(),
             port: EurekaPortDetails {

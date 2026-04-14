@@ -12,10 +12,16 @@ pub struct Settings {
 
     pub grpc_host: String,
     pub grpc_port: u16, 
+
+    pub auth_grpc_addr: String,
+    pub user_grpc_addr: String,
 }
 
 impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
+        // .env 파일에서 환경 변수 로드
+        dotenv::dotenv().ok();
+
         let config = Config::builder()
             .add_source(File::with_name("config").required(false)) // config.toml 파일 읽기
             .add_source(Environment::with_prefix("APP").separator("__")) // 환경 변수 로드

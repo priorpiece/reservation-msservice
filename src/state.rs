@@ -41,7 +41,7 @@ impl AppState {
         let reservation_service: Arc<dyn ReservationUseCase + Send + Sync> = Arc::new(ReservationService::new(Arc::clone(&save_port), Arc::clone(&load_port)));
         //let reservation_service: Arc<dyn ReservationUseCase + Send + Sync> = Arc::new(ReservationService::new(adapter.clone())); 
         
-        let grpc_clients = if let Ok(client) = GrpcClients::new("http://localhost:50052", "http://localhost:50053").await {
+        let grpc_clients = if let Ok(client) = GrpcClients::new(&settings.auth_grpc_addr, &settings.user_grpc_addr).await {
             println!("✅ Successfully connected to gRPC services");
             Arc::new(Mutex::new(client))
         } else {
