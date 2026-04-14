@@ -165,7 +165,8 @@ impl ReservationRepository for ReservationRepositoryImpl {
             "SELECT c.tot_seats AS total_seats, cs.adult_count, cs.child_count
              FROM CONTENT_SCHEDULES cs
              JOIN CONTENTS c ON c.id = cs.content_id
-             WHERE cs.id = ?",
+             WHERE cs.id = ?
+             FOR UPDATE",
             reservation.content_schedule_id
         )
         .fetch_one(&mut *tx)
@@ -260,7 +261,8 @@ impl ReservationRepository for ReservationRepositoryImpl {
             "SELECT c.tot_seats AS total_seats, cs.adult_count, cs.child_count
              FROM CONTENT_SCHEDULES cs
              JOIN CONTENTS c ON c.id = cs.content_id
-             WHERE cs.id = ?",
+             WHERE cs.id = ?
+             FOR UPDATE",
              schedule_id
         )
         .fetch_one(&mut *tx)
